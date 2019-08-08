@@ -25,7 +25,7 @@ namespace ConsoleApp
             decimal counter = 0;
 
             var itemList = new List<ProfileListItem>();
-            foreach (var companyName in companies.Take(5))
+            foreach (var companyName in companies)
             {
                 Thread.Sleep(2000);
                 var html = await htmlService.GetDocument($"https://www.allabolag.se/what/{companyName}");
