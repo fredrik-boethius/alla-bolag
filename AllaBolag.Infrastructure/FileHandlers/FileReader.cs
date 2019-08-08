@@ -11,11 +11,31 @@ namespace AllaBolag.Infrastructure.FileHandlers
     {
         public IEnumerable<string> ReadAllRows(string path)
         {
-            return File.ReadLines(path).Aggregate(new List<string>(),(aggr,curr)=> {
-                aggr.Add(curr);
-                return aggr;
-            });
-            
+            var result = new List<string>();
+            try
+            {
+                result = File.ReadLines(path).Aggregate(new List<string>(), (aggr, curr) =>
+                {
+                    aggr.Add(curr);
+                    return aggr;
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Console.WriteLine("You don't have acess to this directory");
+            }
+            catch (FileNotFoundException)
+            {
+                Console.WriteLine("Can't find your directory");
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return result;
+
+
         }
     }
 }

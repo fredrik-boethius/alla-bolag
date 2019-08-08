@@ -13,7 +13,7 @@ namespace ConsoleApp
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             FileReader handler = new FileReader();
 
@@ -23,28 +23,26 @@ namespace ConsoleApp
             string path = Console.ReadLine();
             IEnumerable<string> companies = handler.ReadAllRows(path);
             decimal counter = 0;
-            List<ProfileListItem> itemList = companies
-                .Aggregate(new List<ProfileListItem>(), (aggr, curr) =>
-                 {
-                     Task<HtmlResult> document = htmlService.GetDocument($"https://www.allabolag.se/what/{curr}");
-                     try
-                     {
-                         Result<ProfileListItem> item = new ProfileBuilder().Build(new ProfileListItemStrategy(document.Result));
-                         aggr.Add(item.Object);
-                         counter++;
-                         Console.Clear();
 
-                         Console.WriteLine($"{(counter / companies.Count()):P2}");
-                     }
-                     catch (AggregateException)
-                     {
+            var itemList = new List<ProfileListItem>();
+            foreach (var companyName in companies.Take(5))
+            {
+                Thread.Sleep(2000);
+                var html = await htmlService.GetDocument($"https://www.allabolag.se/what/{companyName}");
+                try
+                {
+                    Result<ProfileListItem> item = new ProfileBuilder().Build(new ProfileListItemStrategy(html));
+                    counter++;
+                    Console.Clear();
 
-                         aggr.Add(new ProfileListItem { Header = curr });
-                     }
+                    Console.WriteLine($"{(counter / companies.Count()):P2}");
+                }
+                catch (AggregateException)
+                {
 
-                     Thread.Sleep(2000);
-                     return aggr;
-                 });
+                    itemList.Add(new ProfileListItem { Header = companyName });
+                }
+            }
 
             using (StreamWriter outputFile = new StreamWriter("C:\\Users\\F.Boethius-Fjarem\\source\\repos\\AllaBolag\\AllaBolag.Infrastructure.Tests\\Companies_Output.csv"))
             {
